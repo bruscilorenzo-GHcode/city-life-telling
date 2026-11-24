@@ -1,0 +1,122 @@
+{
+  "source_kind": "request_311",
+  "source_ref": "city-life-telling.stories.v1#st_synthetic000",
+  "story_id": "st_synthetic000",
+  "collected_at": "2026-11-16T13:20:00.000Z",
+  "medium": "form",
+  "language": "en",
+  "cell": "gr_r8_45.5100_-73.5600",
+  "trust_level": "D",
+  "now": "2026-11-18T15:31:33Z",
+  "channels": {
+    "functional": "Bus 80 was 25 minutes late at Parc this morning, nobody at the stop had information.",
+    "narrative": "I watched three buses of another route pass while the board promised a departure that never came; it felt like waiting inside a snow globe."
+  },
+  "signal": {
+    "facts": 63,
+    "fiction": 57,
+    "realityIndex": 53,
+    "band": "balanced",
+    "indicators": {
+      "temporalSpecificity": 0,
+      "quantitativeSpecificity": 0,
+      "spatialSpecificity": 0,
+      "verifiableClaim": 1,
+      "narrativeMarkers": 1,
+      "emotionalMarkers": 0,
+      "figurativeMarkers": 1
+    },
+    "drivers": [
+      "narrative_markers",
+      "figurative_markers",
+      "temporal_specificity"
+    ]
+  },
+  "claims": [
+    {
+      "lineId": "bus-80",
+      "kind": "delay"
+    }
+  ],
+  "reading": {
+    "verdict": "confirms",
+    "verdictScore": 100,
+    "dataValue": 62,
+    "correlations": [
+      {
+        "claim": {
+          "lineId": "bus-80",
+          "kind": "delay"
+        },
+        "lineLabel": "Bus 80 · Du Parc",
+        "simStatus": "irregular",
+        "simDelaySec": 141,
+        "simLoad": 0.87,
+        "verdict": "confirms",
+        "nearKm": 1.4443999825443616
+      }
+    ],
+    "parts": [
+      {
+        "kind": "verdict",
+        "key": "ava.verdict.confirms"
+      },
+      {
+        "kind": "correlation",
+        "key": "ava.corr.confirms",
+        "params": {
+          "line": "Bus 80 · Du Parc",
+          "status": "irregular",
+          "delay": 141,
+          "load": 87,
+          "near": 1.4
+        }
+      },
+      {
+        "kind": "dramaturgical",
+        "key": "ava.drama.figurative",
+        "params": {
+          "motif": "I watched three buses of another route pass while the board promised a departure that n…"
+        }
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_time"
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_quantity"
+      },
+      {
+        "kind": "share",
+        "key": "ava.share_data",
+        "params": {
+          "facts": 63,
+          "fiction": 57
+        }
+      }
+    ],
+    "factors": [
+      "claims:1",
+      "bus-80=confirms",
+      "facts:63",
+      "fiction:57",
+      "reality:53",
+      "verifiability:1.00",
+      "specificity:0.00"
+    ]
+  },
+  "consent": {
+    "geolocation": true,
+    "granularity": "city",
+    "calibration_use": "granted",
+    "regime": "socio_narrative",
+    "licence": "CC0-1.0"
+  },
+  "snapshot": {
+    "contract": "clt.matsim.snapshot.v0",
+    "scenario": "clt-corpus",
+    "tick": 0,
+    "generatedAt": "2026-11-16T13:20:00.000Z"
+  }
+}

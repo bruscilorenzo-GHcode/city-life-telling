@@ -1,0 +1,122 @@
+{
+  "source_kind": "panel",
+  "source_ref": "city-life-telling.stories.v1#st_synthetic003",
+  "story_id": "st_synthetic003",
+  "collected_at": "2026-11-16T13:41:00.000Z",
+  "medium": "form",
+  "language": "fr",
+  "cell": "gr_r8_45.4900_-73.5800",
+  "trust_level": "C",
+  "now": "2026-11-18T15:31:33Z",
+  "channels": {
+    "functional": "Ligne jaune suspendue ce dimanche entre Longueuil et l’Université de Sherbrooke, travaux annoncés toute la journée.",
+    "narrative": "On a traversé le pont en navette, le fleuve glacé en bas ; on se serait croisés dans une histoire de voisinage."
+  },
+  "signal": {
+    "facts": 23,
+    "fiction": 0,
+    "realityIndex": 100,
+    "band": "saturated-facts",
+    "indicators": {
+      "temporalSpecificity": 0,
+      "quantitativeSpecificity": 0,
+      "spatialSpecificity": 0,
+      "verifiableClaim": 0,
+      "narrativeMarkers": 0,
+      "emotionalMarkers": 0,
+      "figurativeMarkers": 0
+    },
+    "drivers": [
+      "verifiable_claim",
+      "narrative_markers",
+      "emotional_markers"
+    ]
+  },
+  "claims": [
+    {
+      "lineId": "metro-yellow",
+      "kind": "closed"
+    }
+  ],
+  "reading": {
+    "verdict": "diverges",
+    "verdictScore": 50,
+    "dataValue": 12,
+    "correlations": [
+      {
+        "claim": {
+          "lineId": "metro-yellow",
+          "kind": "closed"
+        },
+        "lineLabel": "Métro 4 · Ligne jaune",
+        "simStatus": "irregular",
+        "simDelaySec": 88,
+        "simLoad": 0.86,
+        "verdict": "diverges",
+        "nearKm": 3.158440278244416
+      }
+    ],
+    "parts": [
+      {
+        "kind": "verdict",
+        "key": "ava.verdict.diverges"
+      },
+      {
+        "kind": "correlation",
+        "key": "ava.corr.diverges",
+        "params": {
+          "line": "Métro 4 · Ligne jaune",
+          "status": "irregular",
+          "delay": 88,
+          "load": 86,
+          "near": 3.2
+        }
+      },
+      {
+        "kind": "dramaturgical",
+        "key": "ava.drama.sparse",
+        "params": {
+          "motif": "On a traversé le pont en navette, le fleuve glacé en bas ; on se serait croisés dans un…"
+        }
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_time"
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_quantity"
+      },
+      {
+        "kind": "share",
+        "key": "ava.share_data",
+        "params": {
+          "facts": 23,
+          "fiction": 0
+        }
+      }
+    ],
+    "factors": [
+      "claims:1",
+      "metro-yellow=diverges",
+      "facts:23",
+      "fiction:0",
+      "reality:100",
+      "verifiability:0.00",
+      "specificity:0.00"
+    ]
+  },
+  "consent": {
+    "geolocation": true,
+    "granularity": "city",
+    "calibration_use": "granted",
+    "regime": "socio_narrative",
+    "licence": "CC0-1.0"
+  },
+  "snapshot": {
+    "contract": "clt.matsim.snapshot.v0",
+    "scenario": "clt-corpus",
+    "tick": 3,
+    "generatedAt": "2026-11-16T13:20:00.000Z"
+  }
+}

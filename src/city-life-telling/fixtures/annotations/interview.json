@@ -1,0 +1,122 @@
+{
+  "source_kind": "interview",
+  "source_ref": "city-life-telling.stories.v1#st_synthetic002",
+  "story_id": "st_synthetic002",
+  "collected_at": "2026-11-16T13:34:00.000Z",
+  "medium": "voice_transcript",
+  "language": "it",
+  "cell": "gr_r8_45.5400_-73.6300",
+  "trust_level": "C",
+  "now": "2026-11-18T15:31:33Z",
+  "channels": {
+    "functional": "Il mio turno di notte comincia alle 23; prendo il métro 4 verso Longueuil e arrivo a casa dopo mezzanotte.",
+    "narrative": "Ricordo il vagone vuoto, le luci gialle sul fiume: sembra un film che ho visto da bambina e che rivedo ogni notte."
+  },
+  "signal": {
+    "facts": 39,
+    "fiction": 57,
+    "realityIndex": 41,
+    "band": "narrative-leaning",
+    "indicators": {
+      "temporalSpecificity": 0,
+      "quantitativeSpecificity": 0,
+      "spatialSpecificity": 0,
+      "verifiableClaim": 0,
+      "narrativeMarkers": 1,
+      "emotionalMarkers": 0,
+      "figurativeMarkers": 1
+    },
+    "drivers": [
+      "narrative_markers",
+      "figurative_markers",
+      "quantitative_specificity"
+    ]
+  },
+  "claims": [
+    {
+      "lineId": "metro-yellow",
+      "kind": "other"
+    }
+  ],
+  "reading": {
+    "verdict": "unverifiable",
+    "verdictScore": 0,
+    "dataValue": 20,
+    "correlations": [
+      {
+        "claim": {
+          "lineId": "metro-yellow",
+          "kind": "other"
+        },
+        "lineLabel": "Métro 4 · Ligne jaune",
+        "simStatus": "nominal",
+        "simDelaySec": 44,
+        "simLoad": 0.86,
+        "verdict": "unverifiable",
+        "nearKm": 6.020388022408833
+      }
+    ],
+    "parts": [
+      {
+        "kind": "verdict",
+        "key": "ava.verdict.unverifiable"
+      },
+      {
+        "kind": "correlation",
+        "key": "ava.corr.unverifiable",
+        "params": {
+          "line": "Métro 4 · Ligne jaune",
+          "status": "nominal",
+          "delay": 44,
+          "load": 86,
+          "near": 6
+        }
+      },
+      {
+        "kind": "dramaturgical",
+        "key": "ava.drama.figurative",
+        "params": {
+          "motif": "Ricordo il vagone vuoto, le luci gialle sul fiume: sembra un film che ho visto da bambi…"
+        }
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_time"
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_quantity"
+      },
+      {
+        "kind": "share",
+        "key": "ava.share_story",
+        "params": {
+          "facts": 39,
+          "fiction": 57
+        }
+      }
+    ],
+    "factors": [
+      "claims:1",
+      "metro-yellow=unverifiable",
+      "facts:39",
+      "fiction:57",
+      "reality:41",
+      "verifiability:0.00",
+      "specificity:0.00"
+    ]
+  },
+  "consent": {
+    "geolocation": true,
+    "granularity": "city",
+    "calibration_use": "granted",
+    "regime": "socio_narrative",
+    "licence": "CC0-1.0"
+  },
+  "snapshot": {
+    "contract": "clt.matsim.snapshot.v0",
+    "scenario": "clt-corpus",
+    "tick": 2,
+    "generatedAt": "2026-11-16T13:20:00.000Z"
+  }
+}

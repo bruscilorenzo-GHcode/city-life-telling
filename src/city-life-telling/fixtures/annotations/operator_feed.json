@@ -1,0 +1,122 @@
+{
+  "source_kind": "operator_feed",
+  "source_ref": "city-life-telling.stories.v1#st_synthetic004",
+  "story_id": "st_synthetic004",
+  "collected_at": "2026-11-16T13:48:00.000Z",
+  "medium": "sensor",
+  "language": "en",
+  "cell": "gr_r8_45.5100_-73.5600",
+  "trust_level": "B",
+  "now": "2026-11-18T15:31:33Z",
+  "channels": {
+    "functional": "AVL feed: bus 139 breakdown near Pie-IX, doors blocked, single-tracking.",
+    "narrative": "The driver kept calm while everyone called home; a small theatre of patience under the overpass."
+  },
+  "signal": {
+    "facts": 44,
+    "fiction": 0,
+    "realityIndex": 100,
+    "band": "saturated-facts",
+    "indicators": {
+      "temporalSpecificity": 0,
+      "quantitativeSpecificity": 0,
+      "spatialSpecificity": 0,
+      "verifiableClaim": 0,
+      "narrativeMarkers": 0,
+      "emotionalMarkers": 0,
+      "figurativeMarkers": 0
+    },
+    "drivers": [
+      "verifiable_claim",
+      "quantitative_specificity",
+      "narrative_markers"
+    ]
+  },
+  "claims": [
+    {
+      "lineId": "bus-139",
+      "kind": "mechanical"
+    }
+  ],
+  "reading": {
+    "verdict": "diverges",
+    "verdictScore": 50,
+    "dataValue": 22,
+    "correlations": [
+      {
+        "claim": {
+          "lineId": "bus-139",
+          "kind": "mechanical"
+        },
+        "lineLabel": "Bus 139 · Pie-IX",
+        "simStatus": "irregular",
+        "simDelaySec": 86,
+        "simLoad": 0.86,
+        "verdict": "diverges",
+        "nearKm": 0.6796946957135545
+      }
+    ],
+    "parts": [
+      {
+        "kind": "verdict",
+        "key": "ava.verdict.diverges"
+      },
+      {
+        "kind": "correlation",
+        "key": "ava.corr.diverges",
+        "params": {
+          "line": "Bus 139 · Pie-IX",
+          "status": "irregular",
+          "delay": 86,
+          "load": 86,
+          "near": 0.7
+        }
+      },
+      {
+        "kind": "dramaturgical",
+        "key": "ava.drama.sparse",
+        "params": {
+          "motif": "The driver kept calm while everyone called home; a small theatre of patience under the …"
+        }
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_time"
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_quantity"
+      },
+      {
+        "kind": "share",
+        "key": "ava.share_data",
+        "params": {
+          "facts": 44,
+          "fiction": 0
+        }
+      }
+    ],
+    "factors": [
+      "claims:1",
+      "bus-139=diverges",
+      "facts:44",
+      "fiction:0",
+      "reality:100",
+      "verifiability:0.00",
+      "specificity:0.00"
+    ]
+  },
+  "consent": {
+    "geolocation": true,
+    "granularity": "city",
+    "calibration_use": "granted",
+    "regime": "socio_narrative",
+    "licence": "CC0-1.0"
+  },
+  "snapshot": {
+    "contract": "clt.matsim.snapshot.v0",
+    "scenario": "clt-corpus",
+    "tick": 4,
+    "generatedAt": "2026-11-16T13:20:00.000Z"
+  }
+}

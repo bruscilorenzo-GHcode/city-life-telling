@@ -1,0 +1,122 @@
+{
+  "source_kind": "assisted_story",
+  "source_ref": "city-life-telling.stories.v1#st_synthetic001",
+  "story_id": "st_synthetic001",
+  "collected_at": "2026-11-16T13:27:00.000Z",
+  "medium": "text",
+  "language": "fr",
+  "cell": "gr_r8_45.5300_-73.6100",
+  "trust_level": "E",
+  "now": "2026-11-18T15:31:33Z",
+  "channels": {
+    "functional": "Ligne orange bondée à 8h05, deux trains passés pleins avant de pouvoir monter.",
+    "narrative": "Je me souviens de l’hiver dernier sur ce quai : on riait entre inconnus, serrés comme dans un vieux tramway de souvenirs."
+  },
+  "signal": {
+    "facts": 73,
+    "fiction": 27,
+    "realityIndex": 73,
+    "band": "fact-leaning",
+    "indicators": {
+      "temporalSpecificity": 0,
+      "quantitativeSpecificity": 0,
+      "spatialSpecificity": 1,
+      "verifiableClaim": 0,
+      "narrativeMarkers": 1,
+      "emotionalMarkers": 0,
+      "figurativeMarkers": 0
+    },
+    "drivers": [
+      "narrative_markers",
+      "verifiable_claim",
+      "temporal_specificity"
+    ]
+  },
+  "claims": [
+    {
+      "lineId": "metro-orange",
+      "kind": "crowding"
+    }
+  ],
+  "reading": {
+    "verdict": "confirms",
+    "verdictScore": 100,
+    "dataValue": 73,
+    "correlations": [
+      {
+        "claim": {
+          "lineId": "metro-orange",
+          "kind": "crowding"
+        },
+        "lineLabel": "Métro 2 · Ligne orange",
+        "simStatus": "irregular",
+        "simDelaySec": 145,
+        "simLoad": 0.88,
+        "verdict": "confirms",
+        "nearKm": 0.9127860891274407
+      }
+    ],
+    "parts": [
+      {
+        "kind": "verdict",
+        "key": "ava.verdict.confirms"
+      },
+      {
+        "kind": "correlation",
+        "key": "ava.corr.confirms",
+        "params": {
+          "line": "Métro 2 · Ligne orange",
+          "status": "irregular",
+          "delay": 145,
+          "load": 88,
+          "near": 0.9
+        }
+      },
+      {
+        "kind": "dramaturgical",
+        "key": "ava.drama.narrative",
+        "params": {
+          "motif": "Je me souviens de l’hiver dernier sur ce quai : on riait entre inconnus, serrés comme d…"
+        }
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_time"
+      },
+      {
+        "kind": "quality",
+        "key": "ava.q_quantity"
+      },
+      {
+        "kind": "share",
+        "key": "ava.share_data",
+        "params": {
+          "facts": 73,
+          "fiction": 27
+        }
+      }
+    ],
+    "factors": [
+      "claims:1",
+      "metro-orange=confirms",
+      "facts:73",
+      "fiction:27",
+      "reality:73",
+      "verifiability:1.00",
+      "specificity:0.33"
+    ]
+  },
+  "consent": {
+    "geolocation": true,
+    "granularity": "city",
+    "calibration_use": "granted",
+    "regime": "socio_narrative",
+    "licence": "CC0-1.0"
+  },
+  "snapshot": {
+    "contract": "clt.matsim.snapshot.v0",
+    "scenario": "clt-corpus",
+    "tick": 1,
+    "generatedAt": "2026-11-16T13:20:00.000Z"
+  }
+}

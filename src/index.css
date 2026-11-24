@@ -1,0 +1,488 @@
+:root {
+  --bg: #0a0a0a;
+  --panel: #101010;
+  --line: #222;
+  --line2: #333;
+  --text: #e8e8e8;
+  --dim: #8a8a8a;
+  --faint: #555;
+  --live: #7fd7a8;
+  --add: #7aa7e0;
+  --remove: #e0625e;
+  --radius: 4px;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: -apple-system, "Segoe UI", system-ui, Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; overflow: hidden; }
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* --- widgets --- */
+.btn { background: #0c0c0c; border: 1px solid var(--line2); color: var(--dim); border-radius: var(--radius); padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: var(--mono); }
+.btn:hover { color: var(--text); border-color: var(--dim); }
+.btn.armed { border-color: #fff; color: #fff; }
+.btn.one-shot { color: var(--dim); }
+.btn.one-shot.armed { color: #fff; }
+
+.btn-group { display: inline-flex; align-items: center; }
+.btn-group .btn { border-radius: 0; margin: 0; }
+.btn-group > :first-child > .btn, .btn-group > .btn:first-child { border-radius: 4px 0 0 4px; }
+.btn-group > :last-child > .btn, .btn-group > .btn:last-child { border-radius: 0 4px 4px 0; }
+
+.switch { display: inline-flex; background: #0c0c0c; border: 1px solid var(--line2); border-radius: var(--radius); overflow: hidden; }
+.switch button { background: transparent; border: none; color: var(--faint); padding: 4px 12px; cursor: pointer; font-size: 12px; }
+.switch button.on { background: #fff; color: #000; }
+/* Stutter / Repeat — one widget, two modes as a switch + a shared RATE knob. */
+.sr-widget { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: var(--radius); padding: 3px 6px; }
+.sr-widget .switch button { padding: 4px 8px; font-size: 11px; letter-spacing: 0.4px; }
+
+/* MIDI unavailable diagnostic (clock-in / midi-out widgets when no backend). */
+.midi-diag { display: inline-flex; align-items: center; gap: 6px; max-width: 280px; }
+.midi-diag-text { font-size: 10px; line-height: 1.35; color: #d9b13a; }
+.midi-diag-rescan { background: none; border: 1px solid var(--line2); color: var(--faint); border-radius: var(--radius); padding: 1px 6px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.midi-diag-rescan:hover { color: var(--text); border-color: var(--text); }
+
+.menu-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.menu-label { color: var(--faint); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+.menu { background: #0c0c0c; border: 1px solid var(--line2); color: var(--text); border-radius: var(--radius); padding: 3px 6px; font-family: var(--mono); font-size: 12px; }
+.menu.mini { padding: 1px 3px; font-size: 10px; }
+
+input.num { background: #000; border: 1px solid var(--line2); color: var(--text); border-radius: var(--radius); padding: 3px 6px; font-family: var(--mono); text-align: center; width: 52px; }
+input.num:focus { border-color: var(--dim); outline: none; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); transition: background 0.1s; }
+.live-dot.on { background: var(--live); box-shadow: 0 0 8px var(--live); }
+
+.ib-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line2); border-radius: var(--radius); padding: 3px 6px 3px 10px; cursor: pointer; }
+.ib-btn.armed { border-color: #fff; }
+.ib-label { color: var(--dim); font-size: 12px; font-family: var(--mono); }
+.ib-btn input.num { width: 48px; }
+
+/* inline fraction-field baseline shared by quantize/meter widgets */
+.qtz-widget { display: inline-flex; align-items: center; }
+.qtz-widget input.num { width: 30px; margin: 0 1px; }
+.qtz-widget .qtz-slash { color: var(--faint); font-family: var(--mono); font-size: 12px; margin: 0 3px; }
+
+/* quantize + meter — near-identical widgets that share this class. Rendered as
+   ONE connected segmented control: arm button + numerator field + slash +
+   denominator field live inside a single continuous frame with hairline segment
+   dividers, so it no longer reads as a detached split widget (a lone rounded
+   button floating beside two separate boxes). Scope is `.btn-group` only.
+   Visual only; DOM/behavior
+   (Qtz/Meter text, aria-labels, .armed class) are unchanged. */
+.qtz-widget .btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  height: 24px;
+  background: #0c0c0c;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.qtz-widget .btn-group > * { display: inline-flex; align-items: center; height: 100%; }
+/* arm button becomes the flush left segment of the frame (no own box) */
+.qtz-widget .btn-group .btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--dim);
+  padding: 0 8px;
+  margin: 0;
+  height: 100%;
+  line-height: 1;
+}
+.qtz-widget .btn-group .btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+.qtz-widget .btn-group .btn.armed { color: #fff; background: #242424; }
+/* number fields + slash become flush inner segments (no detached boxes) */
+.qtz-widget .btn-group input.num {
+  width: 30px;
+  height: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: #070707;
+  padding: 0;
+}
+.qtz-widget .btn-group input.num:focus { background: #101010; box-shadow: inset 0 0 0 1px var(--dim); outline: none; }
+.qtz-widget .btn-group .qtz-slash { margin: 0; padding: 0 2px; }
+/* hairline separators so the segments read joined, not fused */
+.qtz-widget .btn-group > * + * { box-shadow: -1px 0 0 var(--line); }
+/* armed affordance — the whole frame lights up */
+.qtz-widget .btn-group:has(.btn.armed) { border-color: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.35); }
+
+/* scale manager widget — a compact panel sized like the piano-filter widget (pf-widget):
+   modes on top, a pf-size mini-piano in the middle, root/scale/save tucked in a tight row
+   below so the whole card stays small and aligned with the neighbouring filter widgets. */
+.scale-widget { display: inline-flex; align-items: center; }
+.scale-widget .menu-wrap { margin: 0 3px; }
+.scale-manager { display: inline-flex; flex-direction: column; gap: 2px; padding: 2px; border: 1px solid var(--line2); border-radius: var(--radius); background: var(--panel); width: max-content; }
+/* top row: SCALE / BYPASS / LATCH mode group + a per-mode settings gear each (compact) */
+.scale-modes { display: flex; align-items: center; justify-content: space-between; gap: 2px; }
+.scale-modes .btn-group .btn { padding: 1px 4px; font-size: 8px; }
+/* compact per-mode ⚙ gear (distinct from the rack-wide ws-gear) */
+.sm-gear-wrap { display: inline-flex; }
+.scale-modes .sm-gear { background: transparent; border: 1px solid var(--line2); border-radius: 0; width: 13px; height: 17px; padding: 0; font-size: 9px; line-height: 1; color: var(--faint); cursor: pointer; }
+.scale-modes .sm-gear:hover, .scale-modes .sm-gear.on { color: #fff; border-color: var(--dim); background: #1c1c1c; }
+.scale-modes .btn-group > :first-child > .sm-gear, .scale-modes .btn-group > .sm-gear:first-child { border-radius: 4px 0 0 4px; }
+.scale-modes .btn-group > :last-child > .sm-gear, .scale-modes .btn-group > .sm-gear:last-child { border-radius: 0 4px 4px 0; }
+.sm-gear-wrap + .sm-gear-wrap .sm-gear { border-left: 0; }
+/* the per-mode settings popup panel */
+.sm-settings { display: flex; flex-direction: column; gap: 6px; }
+.sm-settings .menu-wrap { justify-content: space-between; }
+/* piano fills the compact card (pf-size keyboard), not the whole row */
+.scale-manager .pf-keys { width: 100%; }
+/* bottom row: ROOT + SCALE menus and the SAVE button — narrow, single line, below the piano */
+.scale-controls { display: flex; align-items: center; flex-wrap: nowrap; gap: 2px; }
+.scale-controls .menu-wrap { gap: 2px; margin: 0; }
+.scale-controls .menu { width: 38px; max-width: 38px; padding: 1px 2px; font-size: 8px; }
+.scale-controls .menu-label { font-size: 8px; }
+.scale-controls .sm-save { padding: 1px 3px; font-size: 8px; line-height: 1.2; }
+
+/* live-scale-latch popup (Session 6) — floating panel, bottom-right like the prototype */
+.live-latch-pop { position: fixed; right: 12px; bottom: 12px; z-index: 900; width: 300px; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--radius); box-shadow: 0 12px 32px rgba(0,0,0,0.7); overflow: hidden; }
+.live-latch-pop .ll-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #161616; border-bottom: 1px solid var(--line); }
+.live-latch-pop .ll-title { color: var(--live); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.live-latch-pop .ll-close { padding: 2px 6px; font-size: 11px; }
+.live-latch-pop .ll-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.live-latch-pop .ll-mode { align-self: stretch; justify-content: center; }
+.live-latch-pop .ll-mode button { font-size: 10px; font-weight: 700; }
+.live-latch-pop .ll-mode button.on { color: var(--live); background: #0e0e0e; }
+.live-latch-pop .ll-midi { display: flex; align-items: center; gap: 6px; }
+.live-latch-pop .ll-midi .menu-wrap { flex: 1; }
+.live-latch-pop .ll-midi .menu { width: 100%; }
+.live-latch-pop .ll-keys { width: 100%; }
+.live-latch-pop .pf-key.white.held, .live-latch-pop .pf-key.black.held { box-shadow: 0 0 0 2px var(--live) inset; }
+.live-latch-pop .ll-hint { color: var(--faint); font-size: 9px; font-family: var(--mono); text-transform: uppercase; text-align: center; }
+.live-latch-pop .ll-status { display: flex; flex-direction: column; gap: 1px; font-size: 9px; font-family: var(--mono); color: var(--dim); }
+.live-latch-pop .ll-status .ll-live { color: var(--live); }
+.live-latch-pop .ll-actions { display: flex; gap: 6px; justify-content: space-between; }
+
+/* armable round knob (duration) — click body to arm, drag to set, click number to type */
+.knob { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 1px solid transparent; border-radius: var(--radius); padding: 3px 5px; }
+.knob.armed { border-color: #fff; }
+.knob-label { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); background: transparent; border: none; padding: 0; cursor: pointer; }
+.knob-label:hover { color: var(--text); }
+.knob.armed .knob-label { color: #fff; }
+.knob-body { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #2a2a2a, #0c0c0c 70%); border: 1px solid var(--line2); position: relative; cursor: ns-resize; touch-action: none; }
+.knob.armed .knob-body { border-color: #fff; box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+.knob-arc { position: absolute; inset: 3px; border-radius: 50%; border: 1px solid var(--line2); }
+.knob.armed .knob-arc { border-color: #fff; }
+.knob-indicator { position: absolute; left: calc(50% - 1px); top: 4px; width: 2px; height: 8px; border-radius: 1px; background: var(--dim); transform-origin: 1px 12px; }
+.knob.armed .knob-indicator { background: #fff; }
+.knob-val { background: transparent; border: none; color: var(--dim); font-family: var(--mono); font-size: 9px; cursor: pointer; padding: 0; }
+.knob.armed .knob-val { color: #fff; }
+.knob-edit { width: 38px; font-size: 10px; }
+.knob-settings { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; }
+.knob-settings-panel { display: flex; flex-direction: column; gap: 5px; min-width: 190px; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--radius); padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+.knob-settings-panel .mod-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+
+/* link-folder popup — clean folder list + link action */
+.link-pop { min-width: 240px; display: flex; flex-direction: column; gap: 6px; }
+.link-actions { display: flex; flex-direction: column; gap: 4px; }
+.link-folders { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow: auto; }
+.folder-item { border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 6px; }
+.folder-item-name { font-family: var(--mono); font-size: 11px; color: var(--text); }
+.folder-item-subs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.folder-chip { font-size: 9px; font-family: var(--mono); color: var(--dim); background: #0c0c0c; border: 1px solid var(--line2); border-radius: 3px; padding: 1px 4px; }
+
+/* --- racks: expandable system --- */
+.racks { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; padding: 4px 10px; border-bottom: 1px solid var(--line); }
+.rack { background: var(--panel); }
+.rack.open { flex: 1 1 100%; border: 1px solid var(--line); border-radius: var(--radius); }
+.rack.closed { flex: 0 1 auto; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line2); border-radius: var(--radius); padding: 2px 6px; }
+.rack-head { display: flex; align-items: center; gap: 8px; padding: 3px 10px; cursor: pointer; user-select: none; }
+.rack.closed .rack-head { padding: 2px 4px; }
+.rack-title { color: var(--dim); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.rack-title-input { width: 120px; }
+.rack-toggle { color: var(--faint); font-size: 10px; }
+.rack-content { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; padding: 6px 10px; }
+.subrack { border: 1px solid var(--line); border-radius: var(--radius); }
+.subrack.open { flex: 1 1 100%; }
+.subrack.closed { flex: 0 1 auto; display: inline-flex; align-items: center; border: 1px solid var(--line2); }
+.subrack.closed .subrack-head { padding: 2px 8px; }
+.subrack.closed .subrack-body { display: none; }
+.subrack-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px; color: var(--faint); font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; }
+.subrack.open .subrack-head { padding: 4px 8px; }
+.subrack-title-input { width: 100px; }
+.subrack-body { padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.empty-hint { color: var(--faint); font-size: 10px; font-style: italic; }
+.rack-addpalette { border-top: 1px solid var(--line); padding: 6px 10px; display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,0.18); }
+.rack-addhead { display: flex; align-items: center; justify-content: space-between; }
+.rack-addtitle { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+.rack-addgroup { display: flex; flex-direction: column; gap: 3px; }
+.rack-addlabel { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
+.rack-addchips { display: flex; flex-wrap: wrap; gap: 4px; }
+.rack-addchips .chip { background: transparent; border: 1px solid var(--line2); color: var(--dim); border-radius: 3px; font-size: 10px; padding: 1px 6px; cursor: pointer; }
+.rack-addchips .chip:hover { color: var(--text); border-color: var(--dim); background: rgba(255,255,255,0.06); }
+.rack-favs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rack.closed .rack-favs { padding: 0; }
+.rack.open .rack-favs { padding: 4px 10px; border-top: 1px solid var(--line); }
+.widget-slot { position: relative; display: inline-flex; align-items: center; gap: 3px; }
+.ws-gear { position: absolute; top: -5px; right: -5px; width: 15px; height: 15px; border-radius: 50%; background: #1c1c1c; border: 1px solid #444; color: #999; font-size: 8px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.12s; z-index: 6; padding: 0; }
+.widget-slot:hover .ws-gear { opacity: 1; }
+.ws-gear:hover { background: #333; color: #fff; }
+.ws-popup-title { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 6px; }
+.mapping-pop { min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.mapping-list { display: flex; flex-direction: column; gap: 3px; max-height: 160px; overflow: auto; }
+.mapping-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: var(--mono); font-size: 11px; }
+.mapping-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mapping-add { display: flex; align-items: center; gap: 4px; }
+.ws-gear.on { opacity: 1; background: #333; color: #fff; }
+.widget-slot.over { outline: 1px dashed #fff; border-radius: 4px; }
+.widget-slot[draggable='true'] { cursor: grab; }
+
+/* --- grid --- */
+.main { flex: 1; min-height: 0; display: flex; padding: 10px; }
+.grid-wrap { flex: 1; min-height: 0; display: flex; }
+.matrix { display: grid; flex: 1; gap: 6px; min-height: 0; }
+.gop { background: transparent; border: 1px solid var(--line2); color: var(--faint); border-radius: 3px; width: 16px; height: 16px; line-height: 1; cursor: pointer; font-size: 11px; padding: 0; }
+.gop:hover { color: var(--text); border-color: var(--dim); }
+
+.ghead { border: 1px solid var(--line2); background: var(--panel); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 4px; color: var(--dim); font-family: var(--mono); font-size: 11px; cursor: pointer; user-select: none; }
+.ghead:hover { border-color: var(--dim); }
+.ghead.armed-add { border-color: var(--add); color: var(--add); background: #111826; }
+.ghead.armed-remove { border-color: var(--remove); color: var(--remove); background: #241111; }
+.gh-label { font-weight: 600; }
+.ghead.global { font-size: 12px; flex-direction: column; gap: 0; line-height: 1; }
+.gh-glyph { font-size: 13px; }
+.gh-sub { font-size: 8px; color: var(--faint); }
+
+.gcell { position: relative; border: 1px solid var(--line2); background: var(--panel); border-radius: var(--radius); cursor: pointer; min-height: 46px; display: flex; align-items: center; justify-content: center; }
+.gcell:not(.active) { opacity: 0.55; }
+.gcell.active { border-color: #fff; background: #171717; }
+.gcell.muted { opacity: 0.3; }
+.gcell.drag-src { opacity: 0.3; }
+.gcell.drag-over { border-color: #fff; background: #1c1c1c; }
+.gcell.selected { outline: 2px solid var(--add); outline-offset: -2px; }
+.gcell.empty { border-style: dashed; color: var(--faint); font-size: 14px; }
+.gcell.empty.drag-over { border-color: #fff; color: var(--text); }
+.gcell-glyph { font-size: 22px; color: var(--faint); }
+.gcell.active .gcell-glyph { color: #fff; text-shadow: 0 0 14px rgba(255,255,255,0.5); }
+.gcell-count { position: absolute; bottom: 2px; right: 6px; font-size: 9px; color: var(--faint); font-family: var(--mono); }
+.gcell-hud { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; background: rgba(10,10,10,0.55); pointer-events: none; font-family: var(--mono); }
+/* Transient held stutter/repeat marker — live only, never persisted (momentary). */
+.gcell-held { position: absolute; top: 2px; left: 4px; z-index: 7; font-size: 9px; font-family: var(--mono); color: #000; background: #ff0; border-radius: 3px; padding: 0 4px; pointer-events: none; text-transform: lowercase; letter-spacing: 0.5px; }
+.gcell-color { position: absolute; inset: 0; opacity: 0.14; pointer-events: none; border-radius: inherit; }
+.gcell-group { position: absolute; inset: 0; border: 1px solid; pointer-events: none; border-radius: inherit; }
+.gcell-group.master { border-width: 3px; }
+.gcell-group.slave { border-width: 1px; }
+/* Constant-control per-cell rendered knob (pan example) — a compact overlay in
+   the cell's top-right corner. Off by default (workspace.view.constantControl);
+   when on, populated cells render it so the parameter can be set per-cell without
+   arming. Pointer events are captured so it never falls through to cell click. */
+.gcell .gcell-knob { position: absolute; top: 2px; right: 2px; z-index: 7; display: flex; align-items: center; gap: 3px; pointer-events: auto; }
+.gcell-knob .cc-body { position: relative; width: 18px; height: 18px; cursor: ns-resize; touch-action: none; }
+.gcell-knob .cc-arc { position: absolute; inset: 1px; border-radius: 50%; border: 1px solid var(--line2); background: rgba(10,10,10,0.6); }
+.gcell-knob .cc-indicator { position: absolute; left: 50%; top: 3px; width: 2px; height: 6px; margin-left: -1px; background: #fff; border-radius: 1px; transform-origin: 50% 6px; }
+.gcell-knob .cc-val { border: none; background: none; color: var(--faint); font-family: var(--mono); font-size: 8px; line-height: 1; padding: 0; cursor: pointer; min-width: 14px; text-align: left; }
+.gcell-knob .cc-val:hover { color: var(--text); }
+.gcell-knob .cc-edit { width: 30px; font-size: 9px; }
+/* Phase 6 Session 2 — piano-roll overlay: per-note dashes. Absolutely positioned
+   over the whole cell (inset 0), pointer-events:none so cell drag/click works.
+   Height is set inline per semitone band; min-height keeps short rolls legible.
+   The cell's own `.muted` opacity dims (not hides) the roll. */
+.roll { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; padding: 2px; }
+.roll-note { position: absolute; min-height: 2px; transform: translateY(-50%); border-radius: 1px; background: #e8e8e8; box-shadow: 0 0 0 1px rgba(0,0,0,0.35); }
+.gcell.active .roll-note { background: #fff; box-shadow: 0 0 6px rgba(255,255,255,0.55); }
+.roll-note.wrapped { background: #8fd3ff; }
+.gcell.muted .roll-note { box-shadow: none; }
+/* Phase 6 Session 3 — live glow: the dash(es) the cell is actually sounding
+   right now brighten + scale up above the surrounding (dim) roll. Gated in code
+   by the global `view.glow` toggle + the cell being active, so this only fires
+   while a real voice is ringing. */
+.roll-note.sounding { background: #ffe14d; box-shadow: 0 0 10px 2px rgba(255,214,64,0.9); transform: translateY(-50%) scaleY(1.7); z-index: 1; }
+.gcell.active .roll-note.sounding { background: #ffe14d; box-shadow: 0 0 12px 3px rgba(255,214,64,0.95); }
+/* Phase 6 Session 4 — inspect overlay: each cell reveals its stored settings as
+   labeled badges (dimmed at their default, standing out when modified) plus a
+   readable source filename derived from sourceRef. Read-only derived view gated
+   by workspace.view.inspect (independent of selection). pointer-events:none so
+   cell click/drag/select keeps working underneath. */
+.gcell-inspect { position: absolute; inset: 2px; z-index: 5; display: flex; flex-direction: column; gap: 2px; padding: 2px 3px; background: rgba(6,12,18,0.88); border: 1px solid var(--line2); border-radius: 3px; overflow: hidden; pointer-events: none; font-family: var(--mono); }
+.inspect-src { font-size: 8px; color: #9fc4ff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inspect-badges { display: flex; flex-wrap: wrap; gap: 1px; }
+.inspect-badge { font-size: 8px; line-height: 1; padding: 1px 2px; border-radius: 2px; white-space: nowrap; }
+.inspect-badge b { font-weight: 600; }
+.inspect-badge.default { color: var(--faint); background: rgba(255,255,255,0.04); }
+.inspect-badge.modified { color: #0a0a0a; background: #ffe14d; box-shadow: 0 0 6px rgba(255,214,64,0.55); }
+
+
+/* --- per-cell scale visualizer (SCALE_FULL_PLAN Session 7) --- */
+/* A compact overlay on cells that carry a scale (root + name above a tiny
+   12-key mini-piano strip whose lit set = (rootNote + interval) % 12) and/or
+   the per-cell scaleBypass gate. Render-only + pointer-events:none so cell
+   click/drag/select keeps working underneath. */
+.cell-scale-viz { position: absolute; left: 3px; bottom: 2px; z-index: 3; display: flex; flex-direction: column; gap: 1px; padding: 2px 3px; max-width: calc(100% - 20px); background: rgba(8,8,8,0.6); border: 1px solid var(--line2); border-radius: 3px; pointer-events: none; }
+.csv-label { font-family: var(--mono); font-size: 7px; line-height: 1; color: var(--dim); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.csv-bypass { font-family: var(--mono); font-size: 7px; font-weight: 700; line-height: 1; color: var(--remove); letter-spacing: 0.04em; }
+.csv-strip { display: flex; gap: 1px; height: 5px; }
+.csv-key { flex: 1; min-width: 0; border-radius: 1px; }
+.csv-key.white { background: #2a2a2a; }
+.csv-key.black { background: #0a0a0a; }
+.csv-key.white.on { background: #ddd; }
+.csv-key.black.on { background: #fff; }
+/* Modulation visualizer — the armed-tool modulation "shader" (Session 8): a
+   transient per-cell curve overlay shown while MOD + a scalar subject are armed.
+   It draws the subject's actual curve (filled SVG waveform) across the cell so a
+   glance shows each cell's curve shape + active state. pointer-events:none so cell
+   click/select/operate keep working; spans the top of the cell so it never
+   collides with the bottom-left scale visualizer / window locators. */
+.cell-mod-viz { position: absolute; top: 1px; left: 3px; right: 3px; z-index: 4; height: 16px; display: flex; align-items: center; gap: 4px; pointer-events: none; font-family: var(--mono); }
+.cmv-dot { flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
+.cmv-dot.on { background: var(--live); box-shadow: 0 0 6px var(--live); }
+.cmv-plot { flex: 1; min-width: 0; height: 15px; display: block; overflow: visible; }
+.cmv-plot.resolved .cmv-line { fill: none; stroke: var(--live); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.cmv-plot.resolved .cmv-area { fill: rgba(127,215,168,0.16); stroke: none; }
+.cell-mod-viz[data-mod-viz-active="0"] .cmv-line { stroke: var(--dim); }
+.cell-mod-viz[data-mod-viz-active="0"] .cmv-area { fill: rgba(138,138,138,0.10); }
+.cmv-plot.empty .cmv-baseline { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
+
+/* --- per-cell window locators (WINDOW_SPEC_PLAN Session 5) --- */
+/* The spec's special interaction method: when the Window tool is armed each cell
+   renders 3 draggable vertical locators (left/end/phase) across its width as a
+   fraction of the cell's loop length. The overlay is pointer-events:none so cell
+   click/drag/select keeps working; only the thin handle strips grab the pointer
+   (a drag on a handle previews locally and commits via the tool path on release). */
+.win-locators { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.wl-region { position: absolute; top: 0; bottom: 0; background: rgba(90,200,255,0.14); pointer-events: none; }
+.wl-hand { position: absolute; top: 0; bottom: 0; width: 14px; transform: translateX(-50%); cursor: ew-resize; pointer-events: auto; touch-action: none; }
+.wl-hand.wl-dragging { cursor: ew-resize; }
+.wl-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); opacity: 0.85; }
+.wl-hand:hover .wl-line, .wl-hand.wl-dragging .wl-line { opacity: 1; box-shadow: 0 0 6px rgba(255,255,255,0.35); }
+.wl-grip { position: absolute; top: 1px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid; border-radius: 3px; }
+.wl-grip i { font-style: normal; font-size: 9px; line-height: 1; }
+
+/* --- window widget (WINDOW_SPEC_PLAN Session 6) --- */
+/* Column layout so the armed legend (matching the WindowLocators handle colors)
+   renders under the Meter-style start → end @ phase row rather than beside it. */
+.win-widget { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; }
+.win-legend { display: inline-flex; align-items: center; gap: 6px; color: var(--faint); font-family: var(--mono); font-size: 10px; line-height: 1; }
+.win-legend i { font-style: normal; }
+
+/* --- popup --- */
+.popup-wrap { position: relative; display: inline-flex; }
+.popup-panel { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; min-width: 220px; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--radius); padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+.grp-settings-list { display: flex; flex-direction: column; gap: 6px; }
+.grp-settings-row { display: flex; align-items: center; gap: 6px; }
+
+/* --- groups widget --- */
+.groups-widget { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grp-dot { display: inline-flex; align-items: center; gap: 4px; background: #0c0c0c; border: 1px solid var(--line2); color: var(--dim); border-radius: var(--radius); padding: 2px 6px; font-family: var(--mono); font-size: 11px; cursor: pointer; }
+.grp-dot.on { color: #fff; border-color: #fff; }
+.grp-color { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.grp-settings { display: inline-flex; align-items: center; gap: 6px; }
+.hint { color: var(--faint); font-size: 10px; font-style: italic; }
+
+/* --- status line --- */
+.status { display: flex; gap: 16px; padding: 4px 10px; background: var(--panel); border-top: 1px solid var(--line); color: var(--faint); font-size: 11px; }
+.status b { color: var(--dim); font-weight: 500; }
+
+/* --- piano filter widget (Phase 5) --- */
+/* FILTER arm + ALL + presets on top, an interactive one-octave piano keyboard
+   in the middle (7 white + 5 black clickable keys) and an octave band (-2…8)
+   below. Enabled keys/octaves are lit (pass), disabled ones are dimmed — so the
+   pass-set reads as a highlighted keyboard. Live-only: writes `settings.pianoFilter`. */
+.pf-widget { display: inline-flex; flex-direction: column; gap: 3px; padding: 3px; border: 1px solid var(--line2); border-radius: var(--radius); background: var(--panel); }
+.pf-widget.armed { border-color: #fff; }
+.pf-head { display: flex; align-items: center; gap: 3px; }
+.pf-head .btn-group { margin-right: auto; }
+.pf-head .btn-group .btn { padding: 2px 6px; font-size: 10px; }
+.pf-head .gop { font-size: 11px; }
+
+/* interactive one-octave piano keyboard (138px = 7 white keys ~ 19.7px each) */
+.pf-keys { position: relative; display: flex; width: 138px; height: 30px; background: #0a0a0a; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.pf-keys .pf-key { border: 0; margin: 0; padding: 0; cursor: pointer; }
+.pf-key.white { flex: 1 1 0; min-width: 0; height: 100%; }
+.pf-key.white + .pf-key.white { border-left: 1px solid #0a0a0a; }
+.pf-key.white.on { background: #ececec; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25); }
+.pf-key.white:not(.on) { background: #3b3b3b; }
+.pf-key.black { position: absolute; top: 0; height: 60%; z-index: 3; border-radius: 0 0 2px 2px; }
+.pf-key.black.on { background: #0b0b0b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.8); }
+.pf-key.black:not(.on) { background: #5a5a5a; }
+.pf-key.white:hover, .pf-key.black:hover { filter: brightness(1.15); }
+
+/* octave band (labels -2…8, indices 0…10) */
+.pf-octs { display: flex; width: 138px; gap: 1px; }
+.pf-oct { flex: 1 1 0; min-width: 0; height: 13px; padding: 0; background: #0c0c0c; border: 1px solid var(--line2); color: var(--faint); border-radius: 2px; font-family: var(--mono); font-size: 7px; line-height: 1; cursor: pointer; }
+.pf-oct.on { color: #000; background: var(--live); border-color: var(--live); }
+.pf-oct:hover:not(.on) { border-color: var(--dim); color: var(--dim); }
+
+/* presets popup (factory drum maps + saved user filters) */
+.pf-presets { display: flex; flex-direction: column; gap: 2px; }
+.pf-ps-title { font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px; }
+.pf-ps-head { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin: 4px 0 1px; font-family: var(--mono); }
+.pf-ps-row { display: flex; align-items: center; justify-content: space-between; }
+.pf-preset { background: transparent; border: 1px solid transparent; color: var(--dim); text-align: left; font-family: var(--mono); font-size: 11px; padding: 2px 4px; border-radius: 2px; cursor: pointer; }
+.pf-preset:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.pf-user { display: flex; align-items: center; }
+.pf-user .pf-preset { flex: 1; min-width: 0; }
+.pf-save, .pf-del { background: transparent; border: 1px solid transparent; color: var(--faint); width: 16px; height: 16px; line-height: 1; cursor: pointer; border-radius: 2px; }
+.pf-save:hover, .pf-del:hover { color: #fff; border-color: var(--line2); }
+.pf-empty { color: var(--faint); font-size: 10px; font-style: italic; }
+
+/* ===== MOD arm button (MODULATION Session 7) ===== */
+
+/* ===== Per-cell modulation config editor (Session 7) ===== */
+.cell-anchor { position: fixed; z-index: 910; }
+.mod-editor { width: 300px; max-height: calc(100vh - 20px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--radius); box-shadow: 0 12px 32px rgba(0,0,0,0.7); }
+.mod-editor .me-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #161616; border-bottom: 1px solid var(--line); }
+.mod-editor .me-title { color: var(--live); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+.mod-editor .me-body { padding: 8px; display: flex; flex-direction: column; gap: 7px; }
+.mod-editor .me-row { display: flex; align-items: center; gap: 6px; }
+.mod-editor .me-lab { color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; width: 52px; flex: none; font-family: var(--mono); }
+.mod-editor .me-row .menu-wrap { flex: 1; }
+.mod-editor .me-row .menu { width: 100%; }
+.mod-editor .me-speed, .mod-editor .me-reps { width: 52px; }
+.mod-editor .me-inf { padding: 2px 8px; font-size: 12px; }
+.mod-editor .me-inf.armed { border-color: var(--live); color: var(--live); }
+.mod-editor .me-custom { display: flex; align-items: stretch; gap: 6px; }
+.mod-editor .me-custom .me-lab { align-self: center; }
+.mod-editor .me-custom-grid { flex: 1; display: flex; gap: 2px; align-items: center; }
+.mod-editor .me-sample { flex: 1; display: flex; align-items: center; }
+.mod-editor .me-sample-y { width: 100%; height: 90px; writing-mode: vertical-lr; direction: rtl; appearance: slider-vertical; accent-color: var(--live); }
+.mod-editor .me-savepreset { align-self: center; flex: none; font-size: 9px; padding: 3px 6px; }
+.mod-editor .me-presets .me-lab { align-self: center; }
+.mod-editor .me-preset-on { flex: none; font-size: 9px; color: var(--live); font-family: var(--mono); white-space: nowrap; }
+.mod-editor .me-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.mod-editor .me-actions .mod-save { color: var(--live); border-color: var(--live2, #35503f); }
+.mod-editor .me-actions .mod-save:hover { border-color: var(--live); }
+/* --- Session 8: curves/frames surface toggle + keyboard-frames editor --- */
+.me-surf { display: flex; gap: 2px; margin-left: auto; }
+.me-surf-btn { padding: 1px 5px; font-size: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+.me-surf-btn.on { border-color: var(--live); color: var(--live); }
+.mod-editor .me-frames { display: flex; flex-direction: column; gap: 5px; padding: 5px; background: rgba(8,8,8,0.35); border: 1px solid var(--line); border-radius: 4px; }
+.fe-count { display: flex; align-items: center; gap: 6px; }
+.fe-btn { padding: 0 7px; font-size: 12px; line-height: 1.3; }
+.fe-count-n { min-width: 20px; text-align: center; color: var(--live); font-family: var(--mono); font-size: 12px; }
+.fe-tabs { display: flex; gap: 3px; flex-wrap: wrap; }
+.fe-tab { min-width: 20px; padding: 1px 5px; font-size: 9px; font-family: var(--mono); border-color: var(--line2); }
+.fe-tab.on { border-color: var(--live); color: var(--live); background: #16231c; }
+.fe-frame-keyboard { display: flex; flex-direction: column; gap: 4px; }
+.fe-frame-keyboard .pf-keys { width: 100%; }
+.fe-row { display: flex; align-items: center; gap: 6px; }
+.fe-row .me-lab { width: 52px; }
+.fe-frame-summary { font-family: var(--mono); font-size: 7px; color: var(--dim); line-height: 1; min-height: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fe-octs { display: flex; gap: 1px; flex-wrap: wrap; margin-top: 2px; }
+.fe-oct { flex: 1; min-width: 16px; padding: 1px 0; font-size: 8px; font-family: var(--mono); border-color: var(--line2); color: var(--dim); }
+.fe-oct.on { border-color: var(--live); color: var(--live); }
+
+/* --- Piano-roll editor popup (Session 2) -------------------------------- */
+.pr-editor { position: fixed; right: 16px; bottom: 16px; z-index: 915; width: 560px; max-width: calc(100vw - 24px); background: var(--panel); border: 1px solid var(--line2); border-radius: var(--radius); box-shadow: 0 14px 36px rgba(0,0,0,0.75); overflow: hidden; display: flex; flex-direction: column; }
+.pr-editor .pr-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #161616; border-bottom: 1px solid var(--line); }
+.pr-editor .pr-title { color: var(--live); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.pr-editor .pr-tools { display: flex; gap: 2px; margin-left: 6px; }
+.pr-editor .pr-tool { min-width: 30px; height: 24px; padding: 0 6px; font-size: 13px; line-height: 1; border-color: var(--line2); color: var(--dim); }
+.pr-editor .pr-tool.on { border-color: var(--live); color: var(--live); background: rgba(255,255,255,0.06); }
+.pr-editor .pr-msg { flex: 1; font-size: 9px; color: var(--dim); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pr-editor .pr-roll { position: relative; margin: 8px; height: 320px; background: #0b0f12; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; touch-action: none; }
+.pr-editor .pr-rowline { position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.05); pointer-events: none; }
+.pr-editor .pr-note { position: absolute; height: 100%; background: rgba(255, 196, 0, 0.5); border: 1px solid #ffc400; border-radius: 2px; cursor: ew-resize; box-sizing: border-box; }
+.pr-editor[data-pr-tool="add"] .pr-note { cursor: crosshair; pointer-events: none; }
+.pr-editor[data-pr-tool="delete"] .pr-note { cursor: pointer; }
+.pr-editor[data-pr-tool="move"] .pr-note { cursor: move; }
+.pr-editor .pr-note:hover { background: rgba(255, 214, 64, 0.85); box-shadow: 0 0 8px rgba(255,214,64,0.6); }
+.pr-editor .pr-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 8px; }
+.pr-editor .pr-hint { font-size: 9px; color: var(--dim); font-family: var(--mono); }
+.pr-editor .pr-actions { display: flex; gap: 6px; }
+.pr-editor .pr-save { color: var(--live); border-color: var(--live2, #35503f); }
+.pr-editor .pr-save:hover { border-color: var(--live); }
+.pr-editor .pr-save:disabled { opacity: 0.4; color: var(--dim); border-color: var(--line2); cursor: default; }
